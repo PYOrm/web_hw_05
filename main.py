@@ -22,21 +22,21 @@ class PrivateBankHandler:
             response = await session.get(url)
             if response.status == 200:
                 return json.loads(await response.text())
-        except aiohttp.ClientConnectorError as e:
+        except aiohttp.ClientConnectorError:
             return None
 
     def next_url(self):
         today = datetime.date.today()
-        for d in range(1, self.period+1):
+        for d in range(0, self.period):
             day = today - datetime.timedelta(days=d)
             yield f"{self.base_url}{day.strftime("%d.%m.%Y")}"
 
-    def parse_response(self, data):
+    def parse_response(self, data: dict):
         exchange_rate = dict()
-        for row in data["exchangeRate"]:
-            if row["currency"] in self.curency_set:
-                exchange_rate[row["currency"]] = {"sale": row["saleRate"], "purchase": row["purchaseRate"]}
-        return {data["date"]: exchange_rate}
+        for row in data.get("exchangeRate"):
+            if row.get("currency") in self.curency_set:
+                exchange_rate[row.get("currency")] = {"sale": row.get("saleRate"), "purchase": row.get("purchaseRate")}
+        return {data.get("date"): exchange_rate}
 
     def __str__(self):
         res = ""
